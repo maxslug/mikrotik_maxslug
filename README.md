@@ -112,7 +112,7 @@ Thank You!!
 
 - https://wiki.mikrotik.com/wiki/Manual:Configuration_Management
 - https://help.mikrotik.com/docs/display/ROS/First+Time+Configuration
-- 
+
 ### Security
 
 - https://mum.mikrotik.com/presentations/UK18/presentation_6165_1539151116.pdf
@@ -131,11 +131,15 @@ Thank You!!
 
 ### Wifi Channel Planning / 802.11ac / CapsMAN
 
-![802.11ac Channels](/doc/802.11ac channels.png)
-![802.11ac Spectrum](/doc/802.11ac channels2.png)
-![802.11ac 20MHz different Center channels](/doc/802.11ac channels different primaries.png)
+![802.11ac Channels](/doc/802.11ac%20channels.png)
+
+![802.11ac Spectrum](/doc/802.11ac%20channels2.png)
+
+![802.11ac 20MHz different Center channels](/doc/802.11ac%20channels%20different%20primaries.png)
+
 ![AC1200 Definition](/doc/ac1200.png)
-![802.11ac Modulations](/doc/mcs modes ac1200 867.png)
+
+![802.11ac Modulations](/doc/mcs%20modes%20ac1200%20867.png)
 
 - https://forum.mikrotik.com/viewtopic.php?t=136476
 - https://forum.mikrotik.com/viewtopic.php?t=125026

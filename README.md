@@ -7,6 +7,8 @@ This repo is to hold my configuration files for a complex home network based on
 Mikrotik networking gear.  Thank you to all the mikrotik forum posters for all
 this knowledge and hard work, especially `pcunite`!
 
+To discuss this please join us here : https://forum.mikrotik.com/viewtopic.php?f=13&t=166330
+
 ## Design Goals
 
 ### WAN
@@ -122,18 +124,20 @@ Here is a diagram I put together to understand the 802.11ac channel assignment
 
 #### cAP AP Wireless Features
 
-Quite frankly, they are lacking a lot on the software-based features like MIMO,
-DFS, Beam Forming, Handoff Protocols, Spectral Scan etc.  
+They are lacking on the software-based features like MIMO, DFS, Beam Forming,
+Handoff Protocols, Spectral Scan etc.
 
-Mikrotik runs their own driver, and it seems to be stuck in the 802.11n era.
-The chipsets in these devices support these features, but they are not enabled.
-If I had to guess, I would say it's probably a mixture of licensing from the
-chipset vendor, mountains of software development, and regulatory issues that
-make it difficult for Mirkotik.  
+Mikrotik runs their own driver, and it seems to be developed in the 802.11n
+era. The chipsets in these devices support these features, but they are not
+enabled.  If I had to guess, I would say it's probably a mixture of licensing
+from the chipset vendor, mountains of software development, and regulatory
+issues that make it difficult for Mirkotik.
+
+It's not a deal breaker, I'm still getting great performance.
 
 One promising recent development is the porting of OpenWRT to these devices.
 I'll probably do this once the dust settles, even though it will mean losing
-CAPSMan, which I enjoy.
+CAPSMan, which I happen to enjoy.
 
 ## References
 

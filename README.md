@@ -4,7 +4,7 @@
 ![Network Diagram](/doc/network.jpg)
 
 This repo is to hold my configuration files for a complex home network based
-on Mikrotik networking gear.
+on Mikrotik networking gear.  Thank you to all the mikrotik forum posters for all this knowledge and hard work!
 
 ## Design Goals
 
@@ -55,14 +55,44 @@ VLAN  |IP                |Usage
  400  |192.168.140.0/24  |VOIP
  500  |192.168.150.0/24  |Neighbor
 
+- For each subnet addresses `.1` through `.39` are reserved for static IP assignment. `.1` is the router.
+- The WAN ports are not on VLANs
+- Once configured, you will need to make a port be on `VLAN 100` to use WinBox.
+
 ### Router
+
+- `192.168.100.1`
+
+
+- The EAP Authentication protocol requires a set system clock. DHCP requires EAP. NTP requies DHCP.  This means you can't set the clock over the internet
+because of a chicken-n-egg problem.  Make sure `mikro1.rsc` is modified with the current time before programming it. Or, if you have a local NTP server, use that.
+- You will need to coax your authentication keys out of your AT&T gateway so you can run in `supplicant mode`.
+- DNS is setup to use DNS over HTTP (DOH) which requires some certificates and hurdles.
 
 ### Switches
 
+I was really only interested in an 8-port managed GigE switch, but for the same price these units include a 2G WiFi radio.
+
+- `192.168.100.2`
+- `192.168.100.3` (config not included)
+
+
+- The radio in the switches are not part of CapsMAN
+- I create a "backup" SSID out of these that should work if I need to hookup the old router, or if for some other reason CapsMAN fails.
+- One of the APs is chained off of `sw1` due to physical topology
+
 ### Access Points
+
+- `192.168.100.11`
+- `192.168.100.12` (config not included)
+- `192.168.100.13` (config not included)
+
+Despite what the Mikrotik documentation says, you cannot fully remotely provision these. You will need to create a config file and add it to the AP.
+After that, the wireless definitions will be automatic, but not the base config and security!
 
 - `/system reset-configuration run-after-reset=wap.rsc` does not seem to work. I still had to manually load the file after reset
 - Resetting into CAP mode (hold reset button till it gets to it's second mode after blinking) is a better starting point
+- Certificates will be auto-provisioned by CapsMAN
 - Whenever you do a `/system reset-configuration` on the router, it doesn't have the ability of saving the certificate keys,
 so unless you are managing your certificates outside of RouterOS, you'll need to clear the certs on EACH access point
   - `/interface wireless cap set enabled=no`
@@ -72,6 +102,7 @@ so unless you are managing your certificates outside of RouterOS, you'll need to
 - Spectral Scan and other cool tools are not supported by the cAP AC (or other 802.11ac products)
 - You need to assign all channels manually, up to and including inputting all the frequencies. It's really strange that this isn't done
   for you based on your country setting.  See below.
+- I scripted the mode button so that it will toggle the LEDs between "always on" and "turn off after 1h"
 
 #### 802.11ac Band Planning
 

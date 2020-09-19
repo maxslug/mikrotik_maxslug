@@ -384,7 +384,6 @@ add disabled=no interface=VLAN_100
 
 # Improve roaming by kicking clients off of weak APs
 /caps-man access-list
-add action=accept interface=any signal-range=-87..120
 add action=reject interface=any signal-range=-120..-88
 
 # TODO: It appears you can't export the certificate private key

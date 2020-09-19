@@ -76,8 +76,8 @@
 #           Alternately, use an NTP server on your LAN
 #######################################
 /system clock set time-zone-name=America/Los_Angeles
-/system clock set time="22:55:00"
-/system clock set date="sep/16/2020"
+/system clock set time="15:38:00"
+/system clock set date="sep/19/2020"
 /system ntp client set enabled=yes server-dns-names=time.cloudflare.com
 
 
@@ -219,25 +219,24 @@ add address=192.88.99.0/24 comment="6to4 relay Anycast [RFC 3068]" list=not_in_i
 /ip settings set rp-filter=strict
 
 /ip firewall filter
-add chain=forward action=fasttrack-connection connection-state=established,related
+# input services the local router only at all the .1 addresses
 add chain=input   action=accept               connection-state=established,related,untracked
-add chain=input   action=accept               in-interface-list=VLAN comment="Allow VLANs"
-add chain=input   action=accept               in-interface-list=BASE comment="Allow Base_Vlan Full Access"
-add chain=input   action=accept               protocol=icmp
-add chain=input   action=drop                 in-interface-list=!VLAN
 add chain=input   action=drop                 connection-state=invalid
+add chain=input   action=accept               protocol=icmp
+add chain=input   action=accept               dst-port=53 in-interface-list=VLAN protocol=udp
+add chain=input   action=accept               dst-port=53 in-interface-list=VLAN protocol=tcp
+add chain=input   action=accept               in-interface-list=BASE comment="Allow Management Vlan Full Access"
 add chain=input   action=drop
 
-add chain=forward action=accept               connection-state=established,related,untracked
+# forward services the NAT / Routing
 add chain=forward action=accept               ipsec-policy=in,ipsec
 add chain=forward action=accept               ipsec-policy=out,ipsec
+add chain=forward action=fasttrack-connection connection-state=established,related
+add chain=forward action=accept               connection-state=established,related,untracked
+add chain=forward action=drop                 connection-state=invalid
 add chain=forward action=accept               connection-state=new in-interface-list=VLAN out-interface-list=WAN
 add chain=forward action=accept               connection-state=new in-interface-list=BASE out-interface-list=WAN
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
-add chain=forward action=drop                 connection-state=invalid
-add chain=forward action=drop                 connection-nat-state=!dstnat connection-state=new in-interface-list=WAN
-add chain=forward action=drop in-interface=ether1 log=yes log-prefix=!public src-address-list=not_in_internet comment="Drop incoming from internet which is not public IP"
-#add chain=forward action=drop in-interface=ether2 log=yes log-prefix=!public src-address-list=not_in_internet comment="Drop incoming from internet which is not public IP"
 add chain=forward action=drop
 
 /ip firewall nat

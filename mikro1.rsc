@@ -198,23 +198,6 @@ add interface=VLAN_300 list=VLAN
 add interface=VLAN_400 list=VLAN
 add interface=VLAN_500 list=VLAN
 
-/ip firewall address-list
-add address=0.0.0.0/8 comment=RFC6890 list=not_in_internet
-add address=172.16.0.0/12 comment=RFC6890 list=not_in_internet
-add address=192.168.0.0/16 comment=RFC6890 list=not_in_internet
-add address=10.0.0.0/8 comment=RFC6890 list=not_in_internet
-add address=169.254.0.0/16 comment=RFC6890 list=not_in_internet
-add address=127.0.0.0/8 comment=RFC6890 list=not_in_internet
-add address=224.0.0.0/4 comment=Multicast list=not_in_internet
-add address=198.18.0.0/15 comment=RFC6890 list=not_in_internet
-add address=192.0.0.0/24 comment=RFC6890 list=not_in_internet
-add address=192.0.2.0/24 comment=RFC6890 list=not_in_internet
-add address=198.51.100.0/24 comment=RFC6890 list=not_in_internet
-add address=203.0.113.0/24 comment=RFC6890 list=not_in_internet
-add address=100.64.0.0/10 comment=RFC6890 list=not_in_internet
-add address=240.0.0.0/4 comment=RFC6890 list=not_in_internet
-add address=192.88.99.0/24 comment="6to4 relay Anycast [RFC 3068]" list=not_in_internet
-
 # Remove this for PPTP, or Load-Balancing issues
 /ip settings set rp-filter=strict
 
@@ -236,6 +219,13 @@ add chain=forward action=accept               connection-state=established,relat
 add chain=forward action=drop                 connection-state=invalid
 add chain=forward action=accept               connection-state=new in-interface-list=VLAN out-interface-list=WAN
 add chain=forward action=accept               connection-state=new in-interface-list=BASE out-interface-list=WAN
+add chain=forward action=accept dst-address=192.168.120.2 in-interface-list=BASE comment="full server access from admin"
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=8234,32400 comment="plex server - guest vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=8234,32400 comment="plex server - neighbor vlan"
+add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=1900,5353,32410-32414 comment="plex server - guest vlan"
+add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=1900,5353,32410-32414 comment="plex server - neighbor vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=443
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=443
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
 add chain=forward action=drop
 
@@ -387,9 +377,9 @@ add disabled=no interface=VLAN_100
 add action=reject interface=any signal-range=-120..-88
 
 # TODO: It appears you can't export the certificate private key
-#   This means that every time you do a /system reset-configuration you will need to 
+#   This means that every time you do a /system reset-configuration you will need to
 #   Clear out the certificates from EVERY access point:
-#     /interface wireless cap set enabled=no 
+#     /interface wireless cap set enabled=no
 #     /certificate print
 #     /certificate remove numbers=0,1
 /caps-man manager set ca-certificate=auto certificate=auto enabled=yes \
@@ -415,7 +405,7 @@ add action=reject interface=any signal-range=-120..-88
 #   :log warning message="Creating new certificates for CaPSMAN"; \
 #   :put "Creating new certificates for CaPSMAN"; \
 #   /caps-man manager set ca-certificate=auto certificate=auto enabled=yes \
-#       require-peer-certificate=no upgrade-policy=suggest-same-version; \ 
+#       require-peer-certificate=no upgrade-policy=suggest-same-version; \
 #   /caps-man manager print; \
 #   :delay 10000ms; \
 #   /caps-man manager print; \

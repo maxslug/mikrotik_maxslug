@@ -18,7 +18,7 @@
 # -----------------------------------------
 #  1    -               WAN1 - Fiber Provider (req EAP auth)
 #  2    -               WAN2 - WISP - TODO:
-#  3    200             Printer
+#  3    300             Printer
 #  4    400             ATA
 #  5    200             <LAN>
 #  6    100,200,300     wap3
@@ -117,7 +117,7 @@ set 11 default-vlan-id=0
 /interface bridge port
 # ether1 - WAN1, not bridged
 # ether2 - WAN2, not bridged
-add bridge=BR1 interface=ether3       pvid=200    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="printer"
+add bridge=BR1 interface=ether3       pvid=300    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="printer"
 add bridge=BR1 interface=ether4       pvid=400    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="ata"
 add bridge=BR1 interface=ether5       pvid=200    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Admin"
 add bridge=BR1 interface=ether6       trusted=yes frame-types=admit-only-vlan-tagged                  ingress-filtering=yes comment="wap3"

@@ -224,8 +224,13 @@ add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interf
 add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=8234,32400 comment="plex server - neighbor vlan"
 add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=1900,5353,32410-32414 comment="plex server - guest vlan"
 add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=1900,5353,32410-32414 comment="plex server - neighbor vlan"
-add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=443
-add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=443
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=443 comment="https server - guest vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=443 comment="https server - neighbor vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=515,631,9100 comment="printer - main vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=515,631,9100 comment="printer - guest vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_100 dst-port=443 comment="printer - admin vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=443 comment="printer - main vlan"
+add chain=forward action=drop   dst-address=192.168.130.3/32 comment="Disable all other ports on printer"
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
 add chain=forward action=drop
 

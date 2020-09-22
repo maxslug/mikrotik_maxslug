@@ -62,6 +62,12 @@ VLAN  |IP                |Usage
 - The WAN ports are not on VLANs
 - Once configured, you will need to make a port be on `VLAN 100` to use WinBox.
 
+### Printing
+
+- ZeroConf / mDNS / Apple Bonjour (AirPrint) cannot be forwarded across subnets / VLANs.
+  - You will only get to auto-discover the printer from one VLAN, I chose guest where the school tablets will be
+- The printer ports for a Lexmark Laser printer are forwarded from the main VLAN to the guest VLAN where the printer is
+
 ### Router
 
 - `192.168.100.1`

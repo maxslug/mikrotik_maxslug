@@ -226,17 +226,20 @@ add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interf
 add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=1900,5353,32410-32414 comment="plex server - neighbor vlan"
 add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=443 comment="https server - guest vlan"
 add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_500 dst-port=443 comment="https server - neighbor vlan"
-add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=515,631,9100 comment="printer - main vlan"
-add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=515,631,9100 comment="printer - guest vlan"
-add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_100 dst-port=443 comment="printer - admin vlan"
-add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=443 comment="printer - main vlan"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=443,9100 comment="printer - main vlan jetdirect"
+add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=443,515,631,9100,9400,9500,9501,65001,65002,65003,65004 comment="printer - guest vlan TCP"
+add chain=forward action=accept protocol=udp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=5353,9200,9300,9301,9302,3702 comment="printer - guest vlan UDP"
 add chain=forward action=drop   dst-address=192.168.130.3/32 comment="Disable all other ports on printer"
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
 add chain=forward action=drop
 
 /ip firewall nat
-add chain=srcnat  action=masquerade           ipsec-policy=out,none out-interface-list=WAN
-add chain=dstnat  action=dst-nat protocol=tcp in-interface-list=WAN dst-port=443 to-addresses=192.168.120.2 to-ports=443 comment="port forward https to server"
+add chain=srcnat  action=masquerade src-address=192.168.120.0/24 dst-address=192.168.120.0/24 comment="Hairpin NAT"
+add chain=srcnat  action=masquerade ipsec-policy=out,none out-interface-list=WAN
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=80 protocol=tcp dst-address-list=WAN_IPS dst-port=80 comment="port forward http to server"
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=443 protocol=tcp dst-address-list=WAN_IPS dst-port=443 comment="port forward https to server"
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=22 protocol=tcp dst-address-list=WAN_IPS dst-port=2222 comment="port forward SSH to server"
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=32400 protocol=tcp dst-address-list=WAN_IPS dst-port=32400 comment="port forward plex to server"
 
 /routing filter
 add action=passthrough chain=dynamic-in disabled=no set-check-gateway=ping comment="Failover ping check"

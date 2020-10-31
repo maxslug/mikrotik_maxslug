@@ -138,9 +138,23 @@ add bridge=BR1 tagged=BR1,ether10                      vlan-ids=500
 #######################################
 # IP Addressing & Routing
 #   Setting the route distance allows for auto-failover
+#   The script will auto-add and remove to the WAN_IPS address list for hairpin NAT support
+#     ... this allows using a router's FQDN from internal and external
 #######################################
-/ip dhcp-client add disabled=no interface=ether1 default-route-distance=1 comment="WAN1 IP"
-/ip dhcp-client add disabled=no interface=ether2 default-route-distance=2 comment="WAN2 IP"
+/ip firewall address-list add comment="wan1" disabled=yes list=WAN_IPS
+/ip firewall address-list add comment="wan2" disabled=yes list=WAN_IPS
+/ip dhcp-client add disabled=no interface=ether1 default-route-distance=1 comment="WAN1 IP" \
+  script=":if (\$bound=1) do={ \
+    /ip firewall address-list set [/ip firewall address-list find where comment=\"wan1\" && list=WAN_IPS] address=\$\"lease-address\" disabled=no; \
+  } else={ \
+    /ip firewall address-list set [/ip firewall address-list find where comment=\"wan1\" && list=WAN_IPS] disabled=yes; \
+  }"
+/ip dhcp-client add disabled=no interface=ether2 default-route-distance=2 comment="WAN2 IP" \
+  script=":if (\$bound=1) do={ \
+    /ip firewall address-list set [/ip firewall address-list find where comment=\"wan2\" && list=WAN_IPS] address=\$\"lease-address\" disabled=no; \
+  } else={ \
+    /ip firewall address-list set [/ip firewall address-list find where comment=\"wan2\" && list=WAN_IPS] disabled=yes; \
+  }"
 
 /interface vlan add interface=BR1 name=VLAN_100 vlan-id=100
 /interface vlan add interface=BR1 name=VLAN_200 vlan-id=200
@@ -233,6 +247,8 @@ add chain=forward action=drop   dst-address=192.168.130.3/32 comment="Disable al
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
 add chain=forward action=drop
 
+# Note that the port forwarding uses an address list not an interface list
+#  this has a subtle effect of allowing a dynamic list which you need for a hairpin NAT
 /ip firewall nat
 add chain=srcnat  action=masquerade src-address=192.168.120.0/24 dst-address=192.168.120.0/24 comment="Hairpin NAT"
 add chain=srcnat  action=masquerade ipsec-policy=out,none out-interface-list=WAN

@@ -186,15 +186,45 @@ add bridge=BR1 tagged=BR1,ether10                      vlan-ids=500
 /ip dhcp-server network add address=192.168.140.0/24 dns-server=192.168.100.1 gateway=192.168.140.1
 /ip dhcp-server network add address=192.168.150.0/24 dns-server=192.168.100.1 gateway=192.168.150.1
 
-# Secure dns over HTTPS w/ failover
+# Secure dns over HTTPS
+#  NOTE: RouterOS does not failover when the DOH stops working :(
+#  Switched from https://cloudflare-dns.com/dns-query due to reliability
+#  Google DOH settings (https://forum.mikrotik.com/viewtopic.php?t=160243#p822014)
+/ip dns set servers=8.8.8.8,8.8.4.4
 /certificate import file-name=DigiCertGlobalRootCA.crt.pem passphrase=""
-/ip dns set allow-remote-requests=yes query-server-timeout=100ms query-total-timeout=5s \
-  servers=1.1.1.1,8.8.8.8 use-doh-server=https://cloudflare-dns.com/dns-query verify-doh-cert=yes
+/tool fetch url=https://pki.goog/roots.pem
+/certificate import file-name=roots.pem passphrase=""
+/ip dns set use-doh-server=https://dns.google/dns-query verify-doh-cert=yes
+/ip dns set allow-remote-requests=yes cache-max-ttl=1d use-doh-server=https://dns.google/dns-query verify-doh-cert=yes
 /ip dns static
+add address=8.8.8.8 name=dns.google
+add address=8.8.4.4 name=dns.google
 add address=104.16.248.249 name=cloudflare-dns.com type=A
 add address=104.16.249.249 name=cloudflare-dns.com type=A
 add address=2606:4700:4700::1001 name=ipv6a.cloudflare-dns.com type=AAAA
 add address=2606:4700:4700::1111 name=ipv6b.cloudflare-dns.com type=AAAA
+
+### Script for certificate update
+/system script add dont-require-permissions=no name=Certificate_Google \
+  policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon \
+  source="/tool fetch url=https://pki.goog/roots.pem\r\n/certificate import file-name=roots.pem passphrase=\"\""
+
+### Script for DNS cache flush
+/system script add dont-require-permissions=no name=DNS_Flush_Cache \
+  policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon \
+  source="/ip dns cache flush"
+
+### Schedule to update google certificate once a week
+/system scheduler add comment="Google Certificate Update" interval=1w \
+  policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon \
+  name=Certificate_Google_Update on-event=Certificate_Google \
+  start-date=nov/01/2020 start-time=04:20:00
+
+### Schedule to flush dns cache everyday
+/system scheduler add comment="DoH Cache Flush" interval=1d \
+  policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon \
+  name="DNS Cache Flush" on-event=DNS_Flush_Cache \
+  start-date=nov/01/2020 start-time=05:00:00
 
 ###############################################################################
 # Firewall

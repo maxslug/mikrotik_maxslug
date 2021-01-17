@@ -13,14 +13,14 @@
 #
 # Port VLANS            Usage
 # -----------------------------------------
-#  1    500             Neighbor
+#  1    100,200,300,500 mikro1 [POE In]
 #  2    300             Console
 #  3    300             Streaming Device
 #  4    300             <AV Spare>
 #  5    200             ChromeCast
 #  6    200             <LAN Spare>
 #  7    100,200,300     wap1
-#  8    100,200,300,500 mikro1
+#  8    500             Neighbor
 # SFP   -               <disabled>
 ###############################################################################
 
@@ -50,22 +50,22 @@ add admin-mac=$BRIDGEMAC auto-mac=no fast-forward=no mtu=1500 name=BR1 \
 
 # VLAN ingress
 /interface bridge port
-add bridge=BR1 interface=ether1       pvid=500    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Neighbor"
+add bridge=BR1 interface=ether1       trusted=yes frame-types=admit-only-vlan-tagged                  ingress-filtering=yes comment="mikro1"
 add bridge=BR1 interface=ether2       pvid=300    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Console"
 add bridge=BR1 interface=ether3       pvid=300    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Streaming Device"
 add bridge=BR1 interface=ether4       pvid=300    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Spare guest"
 add bridge=BR1 interface=ether5       pvid=200    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="ChromeCast"
 add bridge=BR1 interface=ether6       pvid=200    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Spare LAN"
 add bridge=BR1 interface=ether7       trusted=yes frame-types=admit-only-vlan-tagged                  ingress-filtering=yes comment="wap1"
-add bridge=BR1 interface=ether8       trusted=yes frame-types=admit-only-vlan-tagged                  ingress-filtering=yes comment="mikro1"
+add bridge=BR1 interface=ether8       pvid=500    frame-types=admit-only-untagged-and-priority-tagged ingress-filtering=yes comment="Neighbor"
 add bridge=BR1 interface=wlan1        pvid=300
 
 # VLAN egress
 /interface bridge vlan
-add bridge=BR1 tagged=BR1,ether7,ether8            vlan-ids=100
-add bridge=BR1 tagged=ether7,ether8                vlan-ids=200
-add bridge=BR1 tagged=ether7,ether8 untagged=wlan1 vlan-ids=300
-add bridge=BR1 tagged=ether7,ether8                vlan-ids=500
+add bridge=BR1 tagged=BR1,ether7,ether1            vlan-ids=100
+add bridge=BR1 tagged=ether7,ether1                vlan-ids=200
+add bridge=BR1 tagged=ether7,ether1 untagged=wlan1 vlan-ids=300
+add bridge=BR1 tagged=ether7,ether1                vlan-ids=500
 
 /interface vlan add interface=BR1 name=VLAN_100 vlan-id=100
 /interface vlan add interface=BR1 name=VLAN_200 vlan-id=200

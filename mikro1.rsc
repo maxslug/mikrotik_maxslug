@@ -273,6 +273,8 @@ add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interf
 add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_200 dst-port=443,9100 comment="printer - main vlan jetdirect"
 add chain=forward action=accept protocol=tcp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=443,515,631,9100,9400,9500,9501,65001,65002,65003,65004 comment="printer - guest vlan TCP"
 add chain=forward action=accept protocol=udp dst-address=192.168.130.3 in-interface=VLAN_300 dst-port=5353,9200,9300,9301,9302,3702 comment="printer - guest vlan UDP"
+add chain=forward action=accept protocol=tcp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=25565 comment="Minecraft Java server to Guest VLAN"
+add chain=forward action=accept protocol=udp dst-address=192.168.120.2 in-interface=VLAN_300 dst-port=19132 comment="Minecraft Bedrock server to Guets VLAN"
 add chain=forward action=drop   dst-address=192.168.130.3/32 comment="Disable all other ports on printer"
 add chain=forward action=accept               connection-nat-state=dstnat comment="For port forwarding to VLANs"
 add chain=forward action=drop
@@ -286,6 +288,8 @@ add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=80 protocol
 add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=443 protocol=tcp dst-address-list=WAN_IPS dst-port=443 comment="port forward https to server"
 add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=22 protocol=tcp dst-address-list=WAN_IPS dst-port=2222 comment="port forward SSH to server"
 add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=32400 protocol=tcp dst-address-list=WAN_IPS dst-port=32400 comment="port forward plex to server"
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=25565 protocol=tcp dst-address-list=WAN_IPS dst-port=25565 comment="port forward minecraft java to server"
+add chain=dstnat  action=dst-nat to-addresses=192.168.120.2 to-ports=19132 protocol=udp dst-address-list=WAN_IPS dst-port=19132 comment="port forward minecraft bedrock to server"
 
 /routing filter
 add action=passthrough chain=dynamic-in disabled=no set-check-gateway=ping comment="Failover ping check"

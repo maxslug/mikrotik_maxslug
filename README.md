@@ -1,7 +1,21 @@
 # maxslug's Mikrotik Networking Configuration Files
 
-<!-- Someday github will catch up to gitlab and support Mermaid -->
-![Network Diagram](/doc/network.jpg)
+```mermaid
+graph LR
+  WAN1[Fiber ONT] ---|DHCP,EAP| Router(Router<br />RB5009UPr+S+IN)
+  WAN2[WISP] ---|DHCP| Router
+  Router ---|Trunk| WAP2((WAP2<br />cap ac))
+  Router ---|Trunk| WAP3((WAP3<br />cap ac))
+  Router ---|Trunk| SW1(SW1<br />crs109)
+  Router ---|VLAN200| Server
+  Router ---|VLAN400| ATA
+  SW1 ---|Trunk| WAP1((WAP1<br />cap ac))
+  Router ---|Trunk| SW2(SW2<br />crs109)
+  SW2 ---|VLAN300| Backup{Backup<br />SSID}
+  WAP1 ---|VLAN100| Admin{Admin<br />SSID}
+  WAP1 ---|VLAN200| LAN{LAN<br />SSID}
+  WAP1 ---|VLAN300| Guest{Guest<br />SSID}
+```
 
 This repo is to hold my configuration files for a complex home network based on
 Mikrotik networking gear.  Thank you to all the mikrotik forum posters for all
@@ -44,16 +58,16 @@ These are notes to go along with the config files
 
 ### Inventory
 
-- 1 x Mikrotik RB4011iGS+ Router using RouterOS 6.47.3
-- 2 x Mikrotik CRS109-8G-1S-2HnD Router/Switch/APs running RouterOS 6.47.3
-- 3 x Mikrotik cAP AC (RBcAPGi-5acD2nD) using RouterOS 6.47.3
+- 1 x Mikrotik RB5009UPr+s+IN router using RouterOS 7.15beta8
+- 2 x Mikrotik CRS109-8G-1S-2HnD Router/Switch/APs running RouterOS 7.15beta8
+- 3 x Mikrotik cAP AC (RBcAPGi-5acD2nD) using RouterOS 7.15beta8 and wifi-qcom-ac WiFi 5 Wave2 Driver
 
 ### VLANs
 
 VLAN  |IP                |Usage
 ------|------------------|-----------------
  100  |192.168.100.0/24  |Base / Management
- 200  |192.168.120.0/24  |Normal LAN
+ 200  |192.168.120.0/24  |Normal LAN / Chromecasts / Printer
  300  |192.168.130.0/24  |Guest / IOT
  400  |192.168.140.0/24  |VOIP
  500  |192.168.150.0/24  |Neighbor
@@ -92,25 +106,16 @@ I was really only interested in an 8-port managed GigE switch, but for the same 
 
 ### Access Points
 
-- `192.168.100.11`
-- `192.168.100.12` (config not included)
-- `192.168.100.13` (config not included)
+- `192.168.100.11` wap1
+- `192.168.100.12` wap2
+- `192.168.100.13` wap3
 
 Despite what the Mikrotik documentation says, you cannot fully remotely provision these. You will need to create a config file and add it to the AP.
 After that, the wireless definitions will be automatic, but not the base config and security!
 
-- `/system reset-configuration run-after-reset=wap.rsc` does not seem to work. I still had to manually load the file after reset
+- `/system reset-configuration run-after-reset=wap.rsc` does not always work. I still had to manually load the file after reset
 - Resetting into CAP mode (hold reset button till it gets to it's second mode after blinking) is a better starting point
 - Certificates will be auto-provisioned by CapsMAN
-- Whenever you do a `/system reset-configuration` on the router, it doesn't have the ability of saving the certificate keys,
-so unless you are managing your certificates outside of RouterOS, you'll need to clear the certs on EACH access point
-  - `/interface wireless cap set enabled=no`
-  - `/certificate print`
-  - `/certificate remove numbers=1,0`
-  - `/interface wireless cap set enabled=yes`
-- Spectral Scan and other cool tools are not supported by the cAP AC (or other 802.11ac products)
-- You need to assign all channels manually, up to and including inputting all the frequencies. It's really strange that this isn't done
-  for you based on your country setting.  See below.
 - I scripted the mode button so that it will toggle the LEDs between "always on" and "turn off after 1h"
 
 #### 802.11ac Band Planning
@@ -119,8 +124,8 @@ so unless you are managing your certificates outside of RouterOS, you'll need to
 
 Here is a diagram I put together to understand the 802.11ac channel assignment
 
-- DFS is the middle part of the spectral sandwich which requires fancy driver support and regulatory signoff
-- DFS is not supported w/ the cAP AC, at least not for the ones locked to `united states3` region.  As far as I can tell.
+- DFS is the middle part of the spectral sandwich which requires fancy driver support and regulatory signoff. 
+This is now supported with the wifi-qcom-ac drivers.
 - 802.11ac requires 80MHz channels, made up of 4 x 20MHz channels
 - For any given 80 MHz chunk, there are 4 possible assignments, depending on which one you make the control channel
   - This is what gives you the `Ceee` `eCee` `eeCe` `eeeC` "walking ones" pattern.  I tried to depict this above
@@ -130,20 +135,38 @@ Here is a diagram I put together to understand the 802.11ac channel assignment
 
 #### cAP AP Wireless Features
 
-They are lacking on the software-based features like MIMO, DFS, Beam Forming,
-Handoff Protocols, Spectral Scan etc.
+cAP (and other Mikrotik Qualcomm-based 802.11ac products) recently (as of 2024) got full support for 
+WiFi 5 Wave 2!  YOU ROCK MIKROTIK!  Thanks for improving an existing product instead of just
+moving on.  They now support software-based features like MIMO, DFS, Beam Forming,
+Handoff Protocols, Spectral Scan etc.  However in order to use these features, and to make them
+compatible with 802.1ax devices, you need to run a new driver, and a new capsman.  The new driver
+is called `wifi-qcom-ac` and the new capsman is in `/interface wifi capsman` and `/interface wifi`.
 
-Mikrotik runs their own driver, and it seems to be developed in the 802.11n
-era. The chipsets in these devices support these features, but they are not
-enabled.  If I had to guess, I would say it's probably a mixture of licensing
-from the chipset vendor, mountains of software development, and regulatory
-issues that make it difficult for Mirkotik.
+One hiccup I did find is that the new CapsMAN does not play nice with the older capAC devices when
+it comes to VLANs.  You have to statically config some things, and it's all a bit kludgy.  I could
+not get three SSIDs on three VLANs working like I had in RouterOS 6.x.  So instead I removed one and 
+settled for two with the work-arounds.
 
-It's not a deal breaker, I'm still getting great performance.
+Please see router-os-6/ for scripts using the older driver.
 
-One promising recent development is the porting of OpenWRT to these devices.
-I'll probably do this once the dust settles, even though it will mean losing
-CAPSMan, which I happen to enjoy.
+## Software
+
+This install required 3 versions of RouterOS:
+
+- `arm64` - `RB5009` Router. No wireless driver
+- `arm` - `capAC` WAP. `wifi-qcom-ac` driver
+- `mips` - `crs109`. `wireless` driver
+
+### winbox from MacOS
+
+I like this way of using / installing it better than the suggested:
+
+```
+brew tap homebrew/cask-versions
+brew install --cask --no-quarantine wine-devel
+killall wineserver
+wine64 winbox64.exe
+```
 
 ## References
 
@@ -159,7 +182,17 @@ Thank You!!
 
 - https://mum.mikrotik.com/presentations/UK18/presentation_6165_1539151116.pdf
 
-### CAPSman
+### CAPSman and wifi-qcom-ac - New (802.11ac/.ax)
+
+- https://www.youtube.com/watch?v=37aff6d14Xk
+- https://www.youtube.com/watch?v=vkWPlsuyuKE
+- https://www.reddit.com/r/mikrotik/comments/18m9nr4/dude_im_barrelled_by_the_wifi_wave_2/
+- https://forum.mikrotik.com/viewtopic.php?t=202578
+- https://forum.mikrotik.com/viewtopic.php?t=205552
+- https://forum.mikrotik.com/viewtopic.php?t=202476
+- https://forum.mikrotik.com/viewtopic.php?t=202565
+
+### CAPSman - Old
 
 - https://wiki.mikrotik.com/wiki/Manual:CAPsMAN_with_VLANs
 - https://wiki.mikrotik.com/wiki/Manual:Simple_CAPsMAN_setup
@@ -208,11 +241,6 @@ Thank You!!
 - https://forum.mikrotik.com/viewtopic.php?t=155266
 - https://forum.mikrotik.com/viewtopic.php?t=163650
 - https://forum.mikrotik.com/viewtopic.php?t=160224
-
-### The Dude
-
-- https://mikrotik.com/thedude
-- https://wiki.mikrotik.com/wiki/Manual:The_Dude
 
 ### EAP auth
 

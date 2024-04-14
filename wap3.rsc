@@ -48,12 +48,12 @@
 #             5835-5895/30/indoor
 #
 ###############################################################################
-# /export file=wap1-default.rsc
+# /export file=wap3-default.rsc
 
-/system identity set name=wap1
+/system identity set name=wap3
 /system clock set time-zone-name=America/Los_Angeles
-/system clock set time="11:53:00"
-/system clock set date="mar/28/2024"
+/system clock set time="21:00:00"
+/system clock set date="mar/29/2024"
 /system ntp client set enabled=yes servers=time.cloudflare.com
 
 #######################################
@@ -71,6 +71,7 @@
 /log warning "Checkpoint 1"
 
 /interface bridge add name=BR1 protocol-mode=none vlan-filtering=no comment="VLAN disabled during configure"
+
 
 # CAP-AC restriction, VLANs cannot be created by [new] CAPsMAN
 /interface wifi
@@ -110,7 +111,7 @@ add bridge=BR1 tagged=ether1,BR1 untagged=wifi1,wifi2         vlan-ids=300
 /ipv6 settings set disable-ipv6=yes max-neighbor-entries=8192
 
 # Local Static IP
-/ip address add interface=VLAN_100 address=192.168.100.11/24
+/ip address add interface=VLAN_100 address=192.168.100.13/24
 /ip route add distance=1 gateway=192.168.100.1
 /ip dns set servers=192.168.100.1
 
@@ -153,6 +154,6 @@ set discovery-interfaces=VLAN_100 caps-man-addresses=192.168.100.1 enabled=yes s
 # 2. Upgrade RouterBoard Firmware and reboot
 # 3. Check date/time set above
 # 4. Copy this file to Files/
-# 5. /system reset-configuration no-defaults=yes keep-users=yes skip-backup=yes run-after-reset=wap1.rsc
+# 5. /system reset-configuration no-defaults=yes keep-users=yes skip-backup=yes run-after-reset=wap3.rsc
 # 6. Debug, rinse, repeat
 # 7. Do steps 3-6 again

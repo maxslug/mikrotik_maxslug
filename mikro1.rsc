@@ -88,8 +88,9 @@
 /certificate import file-name=$ATTKEY passphrase=""
 /interface ethernet set [ find default-name=$ATTPORT ] mac-address=$ATTMAC \
   comment="MAC is set to the AT&T Residential Gateway, to match EAP authentication"
-/interface dot1x client add certificate=$ATTCLIENT eap-methods=eap-tls \
-  identity=$ATTMAC anon-identity=$ATTMAC interface=$ATTPORT
+# Disabled for non-EAP Fiber (Sonic)
+#/interface dot1x client add certificate=$ATTCLIENT eap-methods=eap-tls \
+#  identity=$ATTMAC anon-identity=$ATTMAC interface=$ATTPORT
 
 /log warning "Checkpoint 2"
 #######################################
